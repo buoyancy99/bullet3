@@ -337,12 +337,6 @@ end
 		trigger = "double",
 		description = "Double precision version of Bullet"
 	}
-
-	newoption
-	{
-		trigger = "clamp-velocities",
-		description = "Limit maximum velocities to reduce FP exception risk"
-	}
 	
 	newoption
 	{
@@ -366,28 +360,13 @@ end
 	if _OPTIONS["double"] then
 		defines {"BT_USE_DOUBLE_PRECISION"}
 	end
-	if _OPTIONS["clamp-velocities"] then
-		defines {"BT_CLAMP_VELOCITY_TO=9999"}
-	end
 
-	newoption
-	{
-		trigger = "dynamic-runtime",
-		description = "Enable dynamic DLL CRT runtime"
-	}
 	configurations {"Release", "Debug"}
 	configuration "Release"
-		flags { "Optimize", "EnableSSE2", "NoMinimalRebuild", "FloatFast"}
-		if not _OPTIONS["dynamic-runtime"] then
-			flags { "StaticRuntime" } 
-		end
+		flags { "Optimize", "EnableSSE2","StaticRuntime", "NoMinimalRebuild", "FloatFast"}
 	configuration "Debug"
 		defines {"_DEBUG=1"}
-		flags { "Symbols" , "NoMinimalRebuild", "NoEditAndContinue" ,"FloatFast"}
-		if not _OPTIONS["dynamic-runtime"] then
-			flags { "StaticRuntime" } 
-		end
-
+		flags { "Symbols", "StaticRuntime" , "NoMinimalRebuild", "NoEditAndContinue" ,"FloatFast"}
 
 	if os.is("Linux") or os.is("macosx") then
 		if os.is64bit() then

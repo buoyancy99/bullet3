@@ -10,28 +10,16 @@ import pybullet_data
 import pybullet as p1
 import random
 
-from enum import Enum
-
-class InitializationStrategy(Enum):
-  """Set how the environment is initialized."""
-  START = 0
-  RANDOM = 1  # random state initialization (RSI)
-
 
 class PyBulletDeepMimicEnv(Env):
 
-  def __init__(self, arg_parser=None, enable_draw=False, pybullet_client=None,
-               time_step=1./240,
-               init_strategy=InitializationStrategy.RANDOM):
+  def __init__(self, arg_parser=None, enable_draw=False, pybullet_client=None):
     super().__init__(arg_parser, enable_draw)
     self._num_agents = 1
     self._pybullet_client = pybullet_client
     self._isInitialized = False
     self._useStablePD = True
     self._arg_parser = arg_parser
-    self.timeStep = time_step
-    self._init_strategy = init_strategy
-    print("Initialization strategy: {:s}".format(init_strategy))
     self.reset()
 
   def reset(self):
@@ -64,7 +52,7 @@ class PyBulletDeepMimicEnv(Env):
       motionPath = pybullet_data.getDataPath() + "/" + motion_file[0]
       #motionPath = pybullet_data.getDataPath()+"/motions/humanoid3d_backflip.txt"
       self._mocapData.Load(motionPath)
-      timeStep = self.timeStep
+      timeStep = 1. / 240.
       useFixedBase = False
       self._humanoid = humanoid_stable_pd.HumanoidStablePD(self._pybullet_client, self._mocapData,
                                                            timeStep, useFixedBase, self._arg_parser)
@@ -89,14 +77,9 @@ class PyBulletDeepMimicEnv(Env):
           time.sleep(timeStep)
     #print("numframes = ", self._humanoid._mocap_data.NumFrames())
     #startTime = random.randint(0,self._humanoid._mocap_data.NumFrames()-2)
-    
-    if self._init_strategy == InitializationStrategy.RANDOM:
-      rnrange = 1000
-      rn = random.randint(0, rnrange)
-      startTime = float(rn) / rnrange * self._humanoid.getCycleTime()
-    elif self._init_strategy == InitializationStrategy.START:
-      startTime = 0
-    
+    rnrange = 1000
+    rn = random.randint(0, rnrange)
+    startTime = float(rn) / rnrange * self._humanoid.getCycleTime()
     self.t = startTime
 
     self._humanoid.setSimTime(startTime)
@@ -280,7 +263,6 @@ class PyBulletDeepMimicEnv(Env):
     #print("pybullet_deep_mimic_env:update timeStep=",timeStep," t=",self.t)
     self._pybullet_client.setTimeStep(timeStep)
     self._humanoid._timeStep = timeStep
-    self.timeStep = timeStep
 
     for i in range(1):
       self.t += timeStep
@@ -332,7 +314,7 @@ class PyBulletDeepMimicEnv(Env):
 
   def check_valid_episode(self):
     #could check if limbs exceed velocity threshold
-    return True
+    return true
 
   def getKeyboardEvents(self):
     return self._pybullet_client.getKeyboardEvents()

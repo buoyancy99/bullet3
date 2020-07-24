@@ -82,13 +82,7 @@ void CollisionShape2TriangleMesh(btCollisionShape* collisionShape, const btTrans
 
 					for (int j = 2; j >= 0; j--)
 					{
-						int graphicsindex;
-                                                switch (indicestype) {
-                                                        case PHY_INTEGER: graphicsindex = gfxbase[j]; break;
-                                                        case PHY_SHORT: graphicsindex = ((unsigned short*)gfxbase)[j]; break;
-                                                        case PHY_UCHAR: graphicsindex = ((unsigned char*)gfxbase)[j]; break;
-                                                        default: btAssert(0);
-                                                }
+						int graphicsindex = indicestype == PHY_SHORT ? ((unsigned short*)gfxbase)[j] : gfxbase[j];
 						if (type == PHY_FLOAT)
 						{
 							float* graphicsbase = (float*)(vertexbase + graphicsindex * stride);

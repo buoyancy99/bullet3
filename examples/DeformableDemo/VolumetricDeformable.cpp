@@ -27,10 +27,9 @@
 #include "../Utils/b3ResourcePath.h"
 
 ///The VolumetricDeformable shows the contact between volumetric deformable objects and rigid objects.
-static btScalar E = 50;
+static btScalar E = 25;
 static btScalar nu = 0.3;
-static btScalar damping_alpha = 0.1;
-static btScalar damping_beta = 0.01;
+static btScalar damping = 0.01;
 
 struct TetraCube
 {
@@ -39,16 +38,13 @@ struct TetraCube
 
 class VolumetricDeformable : public CommonDeformableBodyBase
 {
-	btDeformableLinearElasticityForce* m_linearElasticity;
+	btDeformableNeoHookeanForce* m_neohookean;
 
 public:
 	VolumetricDeformable(struct GUIHelperInterface* helper)
 		: CommonDeformableBodyBase(helper)
 	{
-        m_linearElasticity = 0;
-		m_pickingForceElasticStiffness = 100;
-		m_pickingForceDampingStiffness = 0;
-		m_maxPickingForce = 1e10; // allow large picking force with implicit scheme.
+        m_neohookean = 0;
 	}
 	virtual ~VolumetricDeformable()
 	{
@@ -68,12 +64,12 @@ public:
     
     void stepSimulation(float deltaTime)
     {
-		m_linearElasticity->setPoissonRatio(nu);
-		m_linearElasticity->setYoungsModulus(E);
-		m_linearElasticity->setDamping(damping_alpha, damping_beta);
+		m_neohookean->setPoissonRatio(nu);
+		m_neohookean->setYoungsModulus(E);
+		m_neohookean->setDamping(damping);
         //use a smaller internal timestep, there are stability issues
-        float internalTimeStep = 1. / 240;
-        m_dynamicsWorld->stepSimulation(deltaTime, 4, internalTimeStep);
+        float internalTimeStep = 1. / 480.f;
+        m_dynamicsWorld->stepSimulation(deltaTime, 8, internalTimeStep);
     }
     
     void createStaticBox(const btVector3& halfEdge, const btVector3& translation)
@@ -104,7 +100,7 @@ public:
     
     void Ctor_RbUpStack(int count)
     {
-        float mass = 2;
+        float mass = 0.2;
         
         btCompoundShape* cylinderCompound = new btCompoundShape;
         btCollisionShape* cylinderShape = new btCylinderShapeX(btVector3(2, .5, .5));
@@ -191,7 +187,7 @@ void VolumetricDeformable::initPhysics()
         btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
         btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, groundShape, localInertia);
         btRigidBody* body = new btRigidBody(rbInfo);
-        body->setFriction(1);
+        body->setFriction(0.5);
 
         //add the ground to the dynamics world
         m_dynamicsWorld->addRigidBody(body);
@@ -212,32 +208,29 @@ void VolumetricDeformable::initPhysics()
         getDeformableDynamicsWorld()->addSoftBody(psb);
         psb->scale(btVector3(2, 2, 2));
         psb->translate(btVector3(0, 5, 0));
-        psb->getCollisionShape()->setMargin(0.1);
+        psb->getCollisionShape()->setMargin(0.25);
         psb->setTotalMass(0.5);
         psb->m_cfg.kKHR = 1; // collision hardness with kinematic objects
         psb->m_cfg.kCHR = 1; // collision hardness with rigid body
-		psb->m_cfg.kDF = 2;
+        psb->m_cfg.kDF = 0.5;
         psb->m_cfg.collisions = btSoftBody::fCollision::SDF_RD;
-        psb->m_cfg.collisions |= btSoftBody::fCollision::SDF_RDN;
+        psb->m_cfg.collisions |= btSoftBody::fCollision::SDF_RDF;
+        psb->m_cfg.collisions |= btSoftBody::fCollision::SDF_RDF;
 		psb->m_sleepingThreshold = 0;
         btSoftBodyHelpers::generateBoundaryFaces(psb);
+        
         btDeformableGravityForce* gravity_force =  new btDeformableGravityForce(gravity);
         getDeformableDynamicsWorld()->addForce(psb, gravity_force);
         m_forces.push_back(gravity_force);
         
-        btDeformableLinearElasticityForce* linearElasticity = new btDeformableLinearElasticityForce(100,100,0.01);
-		m_linearElasticity = linearElasticity;
-        getDeformableDynamicsWorld()->addForce(psb, linearElasticity);
-        m_forces.push_back(linearElasticity);
+        btDeformableNeoHookeanForce* neohookean = new btDeformableNeoHookeanForce(500,2000,0.01);
+		m_neohookean = neohookean;
+        getDeformableDynamicsWorld()->addForce(psb, neohookean);
+        m_forces.push_back(neohookean);
+        
     }
-    getDeformableDynamicsWorld()->setImplicit(true);
+    getDeformableDynamicsWorld()->setImplicit(false);
     getDeformableDynamicsWorld()->setLineSearch(false);
-    getDeformableDynamicsWorld()->setUseProjection(true);
-    getDeformableDynamicsWorld()->getSolverInfo().m_deformable_erp = 0.3;
-    getDeformableDynamicsWorld()->getSolverInfo().m_deformable_maxErrorReduction = btScalar(200);
-    getDeformableDynamicsWorld()->getSolverInfo().m_leastSquaresResidualThreshold = 1e-3;
-    getDeformableDynamicsWorld()->getSolverInfo().m_splitImpulse = true;
-    getDeformableDynamicsWorld()->getSolverInfo().m_numIterations = 100;
     // add a few rigid bodies
     Ctor_RbUpStack(4);
 	m_guiHelper->autogenerateGraphicsObjects(m_dynamicsWorld);
@@ -245,31 +238,24 @@ void VolumetricDeformable::initPhysics()
 	{
 		SliderParams slider("Young's Modulus", &E);
 		slider.m_minVal = 0;
-		slider.m_maxVal = 2000;
+		slider.m_maxVal = 50;
 		if (m_guiHelper->getParameterInterface())
 			m_guiHelper->getParameterInterface()->registerSliderFloatParameter(slider);
 	}
 	{
 		SliderParams slider("Poisson Ratio", &nu);
 		slider.m_minVal = 0.05;
-		slider.m_maxVal = 0.49;
+		slider.m_maxVal = 0.40;
 		if (m_guiHelper->getParameterInterface())
 			m_guiHelper->getParameterInterface()->registerSliderFloatParameter(slider);
 	}
 	{
-		SliderParams slider("Mass Damping", &damping_alpha);
-		slider.m_minVal = 0;
-		slider.m_maxVal = 1;
+		SliderParams slider("Damping", &damping);
+		slider.m_minVal = 0.01;
+		slider.m_maxVal = 0.02;
 		if (m_guiHelper->getParameterInterface())
 			m_guiHelper->getParameterInterface()->registerSliderFloatParameter(slider);
 	}
-    {
-        SliderParams slider("Stiffness Damping", &damping_beta);
-        slider.m_minVal = 0;
-        slider.m_maxVal = 0.1;
-        if (m_guiHelper->getParameterInterface())
-            m_guiHelper->getParameterInterface()->registerSliderFloatParameter(slider);
-    }
 }
 
 void VolumetricDeformable::exitPhysics()

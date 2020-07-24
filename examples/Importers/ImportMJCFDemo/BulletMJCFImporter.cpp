@@ -724,14 +724,7 @@ struct BulletMJCFImporterInternalData
 		}
 
 		{
-			if (m_flags & CUF_GOOGLEY_UNDEFINED_COLORS)
-			{
-				geom.m_localMaterial.m_matColor.m_rgbaColor = sGoogleColors[linkIndex & 3];
-			}
-			else
-			{
-				geom.m_localMaterial.m_matColor.m_rgbaColor.setValue(1, 1, 1, 1);
-			}
+			geom.m_localMaterial.m_matColor.m_rgbaColor = sGoogleColors[linkIndex & 3];
 			geom.m_localMaterial.m_matColor.m_specularColor.setValue(1, 1, 1);
 			geom.m_hasLocalMaterial = true;
 		}
@@ -1604,8 +1597,7 @@ bool BulletMJCFImporter::getLinkColor2(int linkIndex, struct UrdfMaterialColor& 
 
 	if (!hasLinkColor)
 	{
-		
-		matCol.m_rgbaColor = (m_data->m_flags & CUF_GOOGLEY_UNDEFINED_COLORS) ? sGoogleColors[linkIndex & 3] : btVector4(1,1,1,1);
+		matCol.m_rgbaColor = sGoogleColors[linkIndex & 3];
 		matCol.m_specularColor.setValue(1, 1, 1);
 		hasLinkColor = true;
 	}

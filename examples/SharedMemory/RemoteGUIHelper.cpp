@@ -529,11 +529,6 @@ void RemoteGUIHelper::removeGraphicsInstance(int graphicsUid)
 		}
 	}
 }
-
-void RemoteGUIHelper::changeScaling(int instanceUid, const double scaling[3])
-{
-
-}
 void RemoteGUIHelper::changeRGBAColor(int instanceUid, const double rgbaColor[4])
 {
 	GraphicsSharedMemoryCommand* cmd = m_data->getAvailableSharedMemoryCommand();

@@ -373,10 +373,6 @@ SET(BulletExampleBrowser_SRCS
   ../DeformableDemo/SplitImpulse.h
   ../DeformableDemo/VolumetricDeformable.cpp
   ../DeformableDemo/VolumetricDeformable.h
-  ../DeformableDemo/Collide.cpp
-  ../DeformableDemo/Collide.h
-  ../DeformableDemo/LargeDeformation.cpp
-  ../DeformableDemo/LargeDeformation.h
   ../DeformableDemo/DeformableClothAnchor.cpp
   ../DeformableDemo/DeformableClothAnchor.h
   ../DeformableDemo/MultibodyClothAnchor.cpp
