@@ -255,7 +255,7 @@ void PhysicsClientExample::prepareAndSubmitCommand(int commandId)
 		{
 			///request an image from a simulated camera, using a software renderer.
 			b3SharedMemoryCommandHandle commandHandle = b3InitRequestCameraImage(m_physicsClientHandle);
-			//b3RequestCameraImageSelectRenderer(commandHandle,ER_BULLET_HARDWARE_OPENGL);
+			b3RequestCameraImageSelectRenderer(commandHandle,ER_BULLET_HARDWARE_OPENGL);
 
 			float viewMatrix[16];
 			float projectionMatrix[16];
