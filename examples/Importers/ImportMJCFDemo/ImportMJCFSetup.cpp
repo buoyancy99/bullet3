@@ -118,6 +118,7 @@ ImportMJCFSetup::ImportMJCFSetup(struct GUIHelperInterface* helper, int option, 
 
 			gMCFJFileNameArray.push_back("mjcf/inverted_pendulum.xml");
 			gMCFJFileNameArray.push_back("mjcf/ant.xml");
+			gMCFJFileNameArray.push_back("mjcf/ant_nocolor.xml");
 			gMCFJFileNameArray.push_back("mjcf/hello_mjcf.xml");
 
 			gMCFJFileNameArray.push_back("mjcf/cylinder.xml");
