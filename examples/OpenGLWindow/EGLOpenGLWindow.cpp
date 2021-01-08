@@ -82,7 +82,7 @@ void EGLOpenGLWindow::createWindow(const b3gWindowConstructionInfo& ci)
 	m_data->m_windowWidth = ci.m_width;
 	m_data->m_windowHeight = ci.m_height;
 
-	const char* egl_device_ev = std::getenv("EGL_DEVICE_ID");
+	const char* egl_device_ev = std::getenv("CUDA_VISIBLE_DEVICES");
 	m_data->m_renderDevice = (egl_device_ev != NULL) ? std::atoi(egl_device_ev) : ci.m_renderDevice;
 
 	EGLint egl_config_attribs[] = {EGL_RED_SIZE,
